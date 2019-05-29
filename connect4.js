@@ -44,6 +44,7 @@ new Vue({
       	},
 
         mouseEnter(r,c){
+        //Highlights the available position to place checker
           color = "green"
           console.log(r,c);
           for(let i=5; i>=0; i--){
@@ -55,64 +56,66 @@ new Vue({
         },
 
         mouseLeave(r,c){
+        //Unhighlights the available position
           color = "black"
           for(let i=5; i>=0; i--){
             if(this.board[i][c] == "green"){
             this.board[i].splice(c,1,color)
             break;
+            }
           }
-
-          }
-        }
-
+        },
 
     },
     mounted() {
 
-    	this.ws.onopen = () => {
-			this.name = prompt("Enter your name: ")
-			console.log("Player Name=",this.name)
-		}
+      this.ws.onopen = () => {
+  			this.name = prompt("Enter your name: ")
+  		  console.log("Player Name=",this.name)
+  	  }
 
-    //To help prevent reload and closing
-		window.addEventListener('beforeunload', (e) => {
-  			// Cancel the event
-  		e.preventDefault();
-  			// Chrome requires returnValue to be set
-  		e.returnValue = 'This game will end';
-		});
+      //To help prevent reload and closing
+  		window.addEventListener('beforeunload', (e) => {
+    			// Cancel the event
+    		e.preventDefault();
+    			// returnValue message
+    		e.returnValue = 'This game will end';
+  		});
 
-		this.ws.onmessage = recSignal => {
-			recSignal = recSignal.data
-        	recSignal = JSON.parse(recSignal)
+  		this.ws.onmessage = recSignal => {
+  			recSignal = recSignal.data
+          	recSignal = JSON.parse(recSignal)
 
-        	
+            //Start game when 2 people join
+          	if(recSignal.type == "begin"){
+            		this.start = true
+            		this.print = true
 
-          //Start game when 2 people join
-        	if(recSignal.type == "begin"){
-          		this.start = true
-          		this.print = true
+                console.log("Players=",recSignal.data)
+          	}
 
-              console.log("Players=",recSignal.data)
-        	}
+          	if(recSignal.type == "valid"){
+              //Changes colour of the circle if the move is valid
 
-        	if(recSignal.type == "valid"){
-            //Changes colour of the circle if the move is valid
-
-            console.log(recSignal.data)
-          		let r = recSignal.data[0]   //row of the colour change
-          		let c = recSignal.data[1]   //col of the colour change
-          		this.player = recSignal.color     //colour of the current player
-          		//console.log(recSignal.color)
+              console.log(recSignal.data)
+            		let r = recSignal.data[0]   //row of the colour change
+            		let c = recSignal.data[1]   //col of the colour change
+            		this.player = recSignal.color     //colour of the current player
+            		//console.log(recSignal.color)
+            
+            		this.board[r].splice(c,1,recSignal.color)   //Change colour
+          	}
           
-          		this.board[r].splice(c,1,recSignal.color)   //Change colour
+            //Out of turn warning
+          	if (recSignal.type == "invalid"){
+            		alert("Wait For Your Turn ")
+          	}
+
+            if (recSignal.type == "WON")
+            {
+              alert(`PLAYER ${recSignal.data} HAS WON`)
+            }
         	}
-        
-          //Out of turn warning
-        	if (recSignal.type == "invalid"){
-          		alert("Wait for Your Turn ")
-        	}
-      	}
     }
 
 }).$mount(`#root`)
