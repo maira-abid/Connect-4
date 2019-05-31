@@ -29,51 +29,142 @@ const changeTurn = () => {
 	}
 }
 
+
 const checkWinner = () => {
+
+	let num = 0
 
 	for(let i=5; i>0; i--) //check horizontal
 	{
-		let num = 0
-		for(let j=0; j<6; j++)
-		{
-			if(array[i][j] == turn)
-			{
+		num = 0
+		for(let j=0; j<6; j++){
+			if(array[i][j] == turn){
 				num ++
 
-				if(num == 4)
-				{
+				if(num == 4){
 					return 1
 				}
 			}
 
-			else
-			{
+			else{
 				num = 0
 			}
-
 		}
 	}
 
+	//------------------------------------------------------------------------------------
+
 	for(let i=0; i<6; i++) //check verticle
 	{
-		let num = 0
-		for(let j=5; j>0; j--)
-		{
-			if(array[j][i] == turn)
-			{
+		num = 0
+		for(let j=5; j>0; j--){
+			if(array[j][i] == turn){
 				num ++;
 
-				if(num == 4)
-				{
+				if(num == 4){
 					return 1
 				}
 			}
 				
-			else
-			{
+			else{
+				num = 0;
+			}
+		}
+	}
+
+	//--------------------------------------------------------------------------------------
+
+	let i = 0
+	let j = 0
+	let k = 0
+
+	for(k = 0; k <= 5; k++){		//Check diagonal from (5,0) to the top 
+		i = k
+		j = 0
+		num = 0
+		while(i >= 0){
+			if(array[i][j] == turn){
+				num ++;
+
+				if(num == 4){
+					return 1
+				}
+			}
+				
+			else{
 				num = 0;
 			}
 
+			i = i-1
+			j = j+1
+		}
+	}
+
+	for(k = 1; k < 5; k++){		//Check diagonal from (5,1) to the bottom
+		i = 5
+		j = k
+		num = 0
+		while(i < 5){
+			if(array[i][j] == turn){
+				num ++;
+
+				if(num == 4){
+					return 1
+				}
+			}
+				
+			else{
+				num = 0;
+			}
+
+			i = i-1
+			j = j+1
+		}
+	}
+
+//------------------------------------------------------------------------------------------
+
+	for(k = 5; k >= 1; k--){		//Check diagonal from (5,6) to the top 
+		i = k
+		j = 6
+		num = 0
+		while(i >= 0){
+			if(array[i][j] == turn){
+				num ++;
+
+				if(num == 4){
+					return 1
+				}
+			}
+				
+			else{
+				num = 0;
+			}
+
+			i = i-1
+			j = j-1
+		}
+	}
+
+	for(k = 5; k > 0; k--){		//Check diagonal from (5,5) to the left
+		i = 5
+		j = k
+		num = 0
+		while(i >= 0){
+			if(array[i][j] == turn){
+				num ++;
+
+				if(num == 4){
+					return 1
+				}
+			}
+				
+			else{
+				num = 0;
+			}
+
+			i = i-1
+			j = j-1
 		}
 	}
 
@@ -129,6 +220,7 @@ wss.on('connection', ws => {
 							color: colour
 						}))
 					})
+
 
 					if(checkWinner())
 					{
