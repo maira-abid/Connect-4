@@ -7,7 +7,7 @@ let first //first player
 let counter = 0
 let colour = "blue" //colour for first player
 let turn = 0
-let maintainrow = [ 5 , 5 , 5 , 5 , 5 , 5 , 5 ] //To check position to place checker from the last row
+let movesLeft = [ 5 , 5 , 5 , 5 , 5 , 5 , 5 ] //To check position to place checker from the last row
 
 let array =      [[ 0 , 0 , 0 , 0 , 0 , 0 , 0 ],		//grid
 				  [ 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
@@ -29,46 +29,51 @@ const changeTurn = () => {
 	}
 }
 
+const restart = () => {
+	
+}
+
+const condition=(i,j,num)=>{
+	if(array[i][j] == turn){
+		num ++
+
+		if(num == 4){
+			return 100
+		}
+		return num
+	}
+
+	else{
+		num = 0
+
+		return num
+	}
+}
 
 const checkWinner = () => {
 
-	let num = 0
+	let num = 0		//number of consecutive checkers
+	let check_condition
 
 	for(let i=5; i>0; i--) //check horizontal
 	{
 		num = 0
 		for(let j=0; j<6; j++){
-			if(array[i][j] == turn){
-				num ++
-
-				if(num == 4){
-					return 1
-				}
-			}
-
-			else{
-				num = 0
-			}
+			check_condition=condition(i,j,num)
+			if (check_condition==100){return 1}
+			else{num=check_condition}
 		}
 	}
 
 	//------------------------------------------------------------------------------------
 
-	for(let i=0; i<6; i++) //check verticle
+	for(let j=0; j<=6; j++) //check verticle
 	{
 		num = 0
-		for(let j=5; j>0; j--){
-			if(array[j][i] == turn){
-				num ++;
-
-				if(num == 4){
-					return 1
-				}
-			}
-				
-			else{
-				num = 0;
-			}
+		for(let i=5; i>=0; i--){
+			check_condition=condition(i,j,num)
+			if (check_condition==100){return 1}
+			else{num=check_condition}
 		}
 	}
 
@@ -83,40 +88,22 @@ const checkWinner = () => {
 		j = 0
 		num = 0
 		while(i >= 0){
-			if(array[i][j] == turn){
-				num ++;
-
-				if(num == 4){
-					return 1
-				}
-			}
-				
-			else{
-				num = 0;
-			}
-
+			check_condition=condition(i,j,num)
+			if (check_condition==100){return 1}
+			else{num=check_condition}
 			i = i-1
 			j = j+1
 		}
 	}
 
-	for(k = 1; k < 5; k++){		//Check diagonal from (5,1) to the bottom
+	for(k = 1; k < 5; k++){		//Check diagonal from (5,1) to the last column
 		i = 5
 		j = k
 		num = 0
 		while(i < 5){
-			if(array[i][j] == turn){
-				num ++;
-
-				if(num == 4){
-					return 1
-				}
-			}
-				
-			else{
-				num = 0;
-			}
-
+			check_condition=condition(i,j,num)
+			if (check_condition==100){return 1}
+			else{num=check_condition}
 			i = i-1
 			j = j+1
 		}
@@ -129,40 +116,23 @@ const checkWinner = () => {
 		j = 6
 		num = 0
 		while(i >= 0){
-			if(array[i][j] == turn){
-				num ++;
-
-				if(num == 4){
-					return 1
-				}
-			}
-				
-			else{
-				num = 0;
-			}
+			check_condition=condition(i,j,num)
+			if (check_condition==100){return 1}
+			else{num=check_condition}
 
 			i = i-1
 			j = j-1
 		}
 	}
 
-	for(k = 5; k > 0; k--){		//Check diagonal from (5,5) to the left
+	for(k = 5; k > 0; k--){		//Check diagonal from (5,5) to the left (first column)
 		i = 5
 		j = k
 		num = 0
 		while(i >= 0){
-			if(array[i][j] == turn){
-				num ++;
-
-				if(num == 4){
-					return 1
-				}
-			}
-				
-			else{
-				num = 0;
-			}
-
+			check_condition=condition(i,j,num)
+			if (check_condition==100){return 1}
+			else{num=check_condition}
 			i = i-1
 			j = j-1
 		}
@@ -171,43 +141,62 @@ const checkWinner = () => {
 	return 0
 }
 
+const checkDraw= () => {
+		let check = 0 
+		for(let i = 0 ; i < 7; i++){
+			if(movesLeft[i]!= -1){
+				return 0
+			}
+		}
+		return 1
+}
+
 wss.on('connection', ws => {
 
-	if(first == undefined) { //connection first player
-		first = ws
-		counter = 1
-		ws.Playernum = counter
-		//console.log(ws.Playernum)
-		console.log('First Player Connected')
-	}
-	else {	//connecting second player
-		counter = 2
-		ws.Playernum = counter
-		//console.log(ws.Playernum) 
-		console.log('Second Player Connected')
-
-		if(counter == 2) 
-		{
-			turn = 1
-
-			wss.clients.forEach(client => { //Send begin signal to each player
-				client.send(JSON.stringify({
-					type: "begin",
-					data: counter,
-				}))
-			})
-		}
-	}
+	console.log("connecting Player")
 
 	ws.on('message', msg => { //recieve message on update call
 		msg = JSON.parse(msg)
+
+		if(msg.type == "name")
+		{
+			if(first == undefined) { //connection first player
+				first = ws
+				counter = 1
+				ws.Playernum = counter
+				ws.Playername = msg.data
+				//console.log(ws.Playernum)
+				console.log('First Player Connected', ws.Playername)
+			}
+
+			else {	//connecting second player
+				counter = 2
+				ws.Playernum = counter
+				ws.Playername = msg.data
+				//console.log(ws.Playernum) 
+				console.log('Second Player Connected', ws.Playername)
+
+				if(counter == 2) 
+				{
+					turn = 1
+
+					wss.clients.forEach(client => { //Send begin signal to each player
+						client.send(JSON.stringify({
+							type: "begin",
+							data: counter,
+						}))
+					})
+				}
+			}
+		}
+
 		if(counter == 2) {
 			if(msg.type == "pos") { //Update position
 				if(ws.Playernum == turn) //Check to see if right player is taking turn 
 				{
 					//console.log(msg.data)
-					msg.data[0] = maintainrow[msg.data[1]]	//gets last available row for that coloumn
-					//console.log(maintainrow[msg.data[1]])
+					msg.data[0] = movesLeft[msg.data[1]]	//gets last available row for that coloumn
+					//console.log(movesLeft[msg.data[1]])
 					let r = msg.data[0]		// sets available row from the bottom
 					let c = msg.data[1]		// sets provided column
 						// console.log(msg.data)
@@ -224,18 +213,32 @@ wss.on('connection', ws => {
 
 					if(checkWinner())
 					{
+						msg.data[0] = ws.Playernum
+						msg.data[1] = ws.Playername
+
 						wss.clients.forEach(client => { //Sends winning signal
 							client.send(JSON.stringify({
 								type: "WON",
-								data: ws.Playernum
+								data: msg.data
 							}))
 						})
 					}
 
 					else
 					{
-						maintainrow[c] = maintainrow[c] -1 //minus the respective column to set available row	
-						//console.log(maintainrow)
+						movesLeft[c] = movesLeft[c] -1 //minus the respective column to set available row	
+						//console.log(movesLeft)
+						if(checkDraw())
+						{
+							wss.clients.forEach(client => { //Sends draw signal
+							client.send(JSON.stringify({
+								type: "DRAW",
+								data: "ITS A DRAW"
+							}))
+						})
+
+						}
+
 						changeTurn()	//Next move
 					}
 				}
